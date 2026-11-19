@@ -625,26 +625,23 @@
   flex-wrap: wrap;
 }
 
-/* Small print / footer additions ------------------------------------------ */
+/* Footer ------------------------------------------------------------------ */
 
-.footer__note {
-  font-size: var(--fs-caption);
-  color: var(--text-2);
-  margin-top: var(--s2);
+/* Three columns: brand, then the two link groups. The design system default
+   reserves a fourth track for the registry demo's "this site" links. */
+
+@media (min-width: 861px) {
+  .footer__grid {
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  }
 }
 
-.demo-strip {
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.demo-strip .container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s4);
-  padding-block: var(--s5);
-  flex-wrap: wrap;
+@media (max-width: 720px) {
+  /* The floating back-to-top button lives in the bottom-right corner; keep the
+     last footer row out from under it. */
+  .footer__bottom {
+    padding-right: 56px;
+  }
 }
 
 @media (max-width: 640px) {

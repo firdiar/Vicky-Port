@@ -35,7 +35,6 @@
     ".skill-groups",
     ".contact",
     ".footer__grid",
-    ".demo-strip > .container",
   ];
 
   /* Single elements that reveal on their own. */
@@ -46,16 +45,6 @@
     ".award",
     ".hero__inner > .sheet",
     ".footer__bottom",
-    ".kit-head",
-    ".kit-preview",
-    ".kit-aside > .card",
-    ".prose",
-    ".page-head",
-    ".doc-block",
-    ".doc-section__head",
-    ".table-wrap",
-    ".specimen",
-    ".card--pad",
   ];
 
   /* Already on screen when the page loads — animate immediately, never
@@ -338,23 +327,6 @@
     });
   }
 
-  /* ----------------------------------------------------- result grid wave */
-
-  function initGridStagger() {
-    $$("#results, #more-kits").forEach(function (grid) {
-      var mark = function () {
-        Array.prototype.forEach.call(grid.children, function (child, i) {
-          child.style.setProperty("--i", String(Math.min(i, 14)));
-        });
-      };
-
-      mark();
-      if ("MutationObserver" in window) {
-        new MutationObserver(mark).observe(grid, { childList: true });
-      }
-    });
-  }
-
   /* ------------------------------------------------------- scroll chrome */
 
   function initScrollChrome() {
@@ -483,7 +455,6 @@
       initMagnetic();
     }
     initCountUp();
-    initGridStagger();
   }
 
   if (document.readyState === "loading") {
