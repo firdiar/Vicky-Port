@@ -1,0 +1,753 @@
+/* ==========================================================================
+   Motion layer
+   Interaction and animation on top of the Genesis tokens. Loaded last so it
+   can refine earlier rules. Every effect here is transform/opacity driven and
+   is switched off by prefers-reduced-motion, `?motion=off`, or a page without
+   JavaScript (no `js` class on <html>).
+
+   Contents
+   1. Motion tokens
+   2. Reveal on scroll
+   3. Hero entrance
+   4. Scroll chrome — progress, nav state, scrollspy, back to top
+   5. Pointer affordances — spotlight, tilt, magnetic, press
+   6. Component micro-motion
+   7. Overlays — toast, drawer, palette
+   8. Theme change
+   9. Off switches
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Motion tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  --dur-1: 90ms;    /* press */
+  --dur-2: 160ms;   /* colour */
+  --dur-3: 260ms;   /* small state change */
+  --dur-4: 460ms;   /* reveal */
+  --dur-5: 760ms;   /* hero words */
+
+  --e-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --e-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --e-spring: cubic-bezier(0.34, 1.46, 0.64, 1);
+
+  --reveal-d: 72ms;  /* stagger step inside a group */
+}
+
+/* --------------------------------------------------------------------------
+   2. Reveal on scroll
+   `[data-reveal]` is a single element, `[data-reveal-group]` staggers its
+   children. Only `translate` / `scale` / `opacity` / `filter` are touched, so
+   `transform` stays free for hover and tilt effects.
+   -------------------------------------------------------------------------- */
+
+html.js [data-reveal],
+html.js [data-reveal-group] > * {
+  transition: opacity var(--dur-4) var(--e-out), translate var(--dur-4) var(--e-out),
+    scale var(--dur-4) var(--e-out), filter var(--dur-4) var(--e-out);
+  transition-delay: calc(var(--reveal-i, 0) * var(--reveal-d));
+}
+
+html.js [data-reveal]:not(.is-in),
+html.js [data-reveal-group]:not(.is-in) > * {
+  opacity: 0;
+  translate: var(--reveal-x, 0) var(--reveal-y, 18px);
+  will-change: opacity, translate;
+}
+
+/* variants */
+html.js [data-reveal="down"]:not(.is-in) { --reveal-y: -14px; }
+html.js [data-reveal="from-left"]:not(.is-in) { --reveal-x: -24px; --reveal-y: 0px; }
+html.js [data-reveal="from-right"]:not(.is-in) { --reveal-x: 24px; --reveal-y: 0px; }
+html.js [data-reveal="fade"]:not(.is-in) { translate: none; }
+html.js [data-reveal="scale"]:not(.is-in) { scale: 0.965; translate: none; }
+
+/* A section that lands from the hash gets a quiet accent pulse, so in-page
+   navigation has an "arrived here" cue. */
+.section:target > .container > .section-head .eyebrow,
+.section:target > .container > .eyebrow {
+  animation: target-pulse 1400ms var(--e-out) both;
+}
+
+@keyframes target-pulse {
+  0% { color: var(--primary); }
+  100% { color: var(--text-2); }
+}
+
+/* Anchor jumps stop below the sticky nav instead of under it. */
+main [id] {
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+}
+
+/* --------------------------------------------------------------------------
+   3. Hero entrance
+   The word split is applied by motion.js. Until it runs the title is still
+   readable — only the inner spans move.
+   -------------------------------------------------------------------------- */
+
+.hero__title .w {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.hero__title.is-split .w {
+  translate: 0 0.5em;
+  transition: translate var(--dur-5) var(--e-out);
+  transition-delay: calc(var(--wi, 0) * 24ms);
+}
+
+.hero__title.is-split.is-in .w {
+  translate: 0 0;
+}
+
+/* The credential sheet settles in with a touch of depth. */
+html.js .hero__inner > .sheet:not(.is-in) {
+  --reveal-x: 26px;
+  --reveal-y: 8px;
+  scale: 0.985;
+}
+
+/* --------------------------------------------------------------------------
+   4. Scroll chrome
+   -------------------------------------------------------------------------- */
+
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 41;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.scroll-progress > span {
+  display: block;
+  height: 100%;
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 35%, transparent)
+  );
+  will-change: transform;
+}
+
+/* Nav gains weight once the page moves under it. */
+.nav {
+  transition: box-shadow var(--dur-3) var(--e-out), background var(--dur-3) var(--e-out);
+}
+
+.nav[data-scrolled="true"] {
+  box-shadow: 0 1px 0 var(--border), 0 10px 30px -24px rgba(10, 10, 10, 0.55);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+/* Nav link: sliding underline for hover and for the section in view. */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: var(--s3);
+  right: var(--s3);
+  bottom: 4px;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-3) var(--e-out);
+}
+
+.nav-link:hover::after,
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* Accent rule that draws itself in beside every section eyebrow. */
+.section-head .eyebrow::before,
+.contact .eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  margin-right: 10px;
+  vertical-align: middle;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-4) var(--e-out) 120ms;
+}
+
+.section-head.is-in .eyebrow::before,
+.contact.is-in .eyebrow::before {
+  transform: scaleX(1);
+}
+
+/* Back to top, with a ring that reports how far down the page you are. */
+.totop {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 45;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--text-2);
+  box-shadow: var(--shadow-hover);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  opacity: 0;
+  translate: 0 12px;
+  scale: 0.9;
+  pointer-events: none;
+  transition: opacity var(--dur-3) var(--e-out), translate var(--dur-4) var(--e-spring),
+    scale var(--dur-4) var(--e-spring), color var(--dur-2) var(--e-out),
+    border-color var(--dur-2) var(--e-out);
+}
+
+.totop[data-show="true"] {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+  pointer-events: auto;
+}
+
+.totop:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--border) 55%, var(--text-2));
+}
+
+.totop:active {
+  scale: 0.92;
+}
+
+.totop__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  rotate: -90deg;
+}
+
+.totop__ring circle {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: var(--ring, 100);
+  transition: stroke-dashoffset 140ms linear;
+}
+
+.totop__icon {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* --------------------------------------------------------------------------
+   5. Pointer affordances — only for devices that really have a pointer
+   -------------------------------------------------------------------------- */
+
+@media (hover: hover) and (pointer: fine) {
+  /* Cursor-tracked glow inside cards. z-index -1 keeps it under the content
+     while isolation keeps it inside the card's own stacking context. */
+  .spot {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .spot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      260px circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--primary) 11%, transparent),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity var(--dur-3) var(--e-out);
+  }
+
+  .spot[data-lit="true"]::after {
+    opacity: 1;
+  }
+
+  /* Lift for surfaces that do not link anywhere (credentials, focus areas). */
+  .cert,
+  .focus {
+    transition: transform var(--dur-3) var(--e-out), box-shadow var(--dur-3) var(--e-out),
+      border-color var(--dur-3) var(--e-out);
+  }
+
+  .cert:hover,
+  .focus:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+    border-color: color-mix(in srgb, var(--border) 62%, var(--text-2));
+  }
+
+  .kit-card__media {
+    overflow: hidden;
+  }
+
+  .kit-card__media img {
+    transition: scale var(--dur-5) var(--e-out);
+  }
+
+  .kit-card:hover .kit-card__media img {
+    scale: 1.035;
+  }
+
+  /* Timeline rows light up as you read them. No accent line: a rule flush
+     against the date column reads as if the row were clipped. */
+  .timeline__item {
+    transition: background var(--dur-3) var(--e-out);
+  }
+
+  .timeline__item:hover {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+  }
+
+  .timeline__item:hover .timeline__when {
+    color: var(--text);
+  }
+
+  .timeline__when {
+    transition: color var(--dur-2) var(--e-out);
+  }
+}
+
+/* 3D tilt for the hero sheet. motion.js writes --tilt-x / --tilt-y. */
+.tilt {
+  transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 320ms var(--e-out);
+}
+
+.tilt[data-tilting="true"] {
+  transition: transform 70ms linear;
+}
+
+/* Magnetic buttons: JS writes translate on the element. */
+.mag {
+  transition: translate 360ms var(--e-spring), transform var(--t), scale var(--dur-2) var(--e-out);
+}
+
+.mag[data-pull="true"] {
+  transition: translate 90ms linear, transform var(--t), scale var(--dur-2) var(--e-out);
+}
+
+/* --------------------------------------------------------------------------
+   6. Component micro-motion
+   -------------------------------------------------------------------------- */
+
+/* Press: every button gives a little under the finger. */
+.btn {
+  transition: background var(--dur-2) var(--e-out), color var(--dur-2) var(--e-out),
+    border-color var(--dur-2) var(--e-out), box-shadow var(--dur-3) var(--e-out),
+    transform var(--dur-2) var(--e-out), scale var(--dur-1) var(--e-out);
+}
+
+.btn:active {
+  scale: 0.97;
+}
+
+.btn svg {
+  transition: translate var(--dur-2) var(--e-out);
+}
+
+.btn:hover svg {
+  translate: 1.5px 0;
+}
+
+/* Light sweep across primary buttons on hover. */
+.btn--primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn--primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.26) 50%,
+    transparent 62%
+  );
+  translate: -130% 0;
+  transition: translate 620ms var(--e-out);
+}
+
+.btn--primary:hover::after {
+  translate: 130% 0;
+}
+
+.icon-btn:active {
+  scale: 0.92;
+}
+
+.icon-btn {
+  transition: background var(--dur-2) var(--e-out), color var(--dur-2) var(--e-out),
+    border-color var(--dur-2) var(--e-out), scale var(--dur-1) var(--e-out);
+}
+
+/* Chips answer back. */
+.chip {
+  transition: background var(--dur-2) var(--e-out), color var(--dur-2) var(--e-out),
+    border-color var(--dur-2) var(--e-out), transform var(--dur-2) var(--e-out);
+}
+
+a.chip:hover,
+button.chip:hover {
+  transform: translateY(-1px);
+}
+
+/* Inline links: underline wipes in from the left. */
+.contact__mail,
+.contact__rows a,
+.footer__links a {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size var(--dur-3) var(--e-out), color var(--dur-2) var(--e-out);
+}
+
+.contact__mail:hover,
+.contact__rows a:hover,
+.footer__links a:hover {
+  text-decoration: none;
+  background-size: 100% 1px;
+}
+
+/* Portrait breathes a little on hover. */
+.portrait {
+  transition: scale var(--dur-3) var(--e-spring), border-color var(--dur-2) var(--e-out),
+    box-shadow var(--dur-3) var(--e-out);
+}
+
+.portrait:hover {
+  scale: 1.04;
+  border-color: color-mix(in srgb, var(--border) 50%, var(--primary));
+  box-shadow: var(--ring);
+}
+
+/* Numbers stay the same width while they count up. */
+.hero-stat__value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Copy buttons acknowledge the click. */
+[data-copied="true"] {
+  animation: copy-pop 340ms var(--e-spring);
+}
+
+@keyframes copy-pop {
+  0% { scale: 1; }
+  45% { scale: 1.04; }
+  100% { scale: 1; }
+}
+
+/* Credential rows in the hero sheet are copy buttons: a registration number is
+   the one thing a reader is most likely to want out of a CV. */
+.sheet__row--copy {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-2) var(--e-out), color var(--dur-2) var(--e-out);
+}
+
+.sheet__row--copy:hover {
+  background: var(--bg-alt);
+}
+
+.sheet__row--copy:hover span:last-child {
+  color: var(--primary-text);
+}
+
+.sheet__row--copy:focus-visible {
+  outline-offset: -2px;
+}
+
+.sheet__row--copy[data-copied="true"] span:last-child {
+  color: var(--success);
+}
+
+/* Cards rendered by JS (kits, results) arrive in a wave. */
+.kit-card,
+.kit-list__row {
+  animation: card-in var(--dur-4) var(--e-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* The status dot breathes, so "current" reads as live. */
+.footer__status .status-dot,
+.hero-loc .status-dot {
+  animation: dot-breathe 2600ms var(--e-in-out) infinite;
+}
+
+@keyframes dot-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* --------------------------------------------------------------------------
+   7. Overlays
+   -------------------------------------------------------------------------- */
+
+/* Toast springs up from the bottom edge. */
+.toast {
+  transform: none;
+  translate: -50% 12px;
+  scale: 0.96;
+  transition: opacity var(--dur-3) var(--e-out), translate var(--dur-4) var(--e-spring),
+    scale var(--dur-4) var(--e-spring);
+}
+
+.toast[data-open="true"] {
+  transform: none;
+  translate: -50% 0;
+  scale: 1;
+}
+
+/* Mobile drawer slides. */
+.drawer {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 -10px;
+  transition: opacity var(--dur-3) var(--e-out), translate var(--dur-3) var(--e-out),
+    visibility 0s linear var(--dur-3);
+}
+
+.drawer[data-open="true"] {
+  visibility: visible;
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 0s;
+}
+
+.drawer__link {
+  transition: background var(--dur-2) var(--e-out), color var(--dur-2) var(--e-out),
+    opacity var(--dur-3) var(--e-out), translate var(--dur-3) var(--e-out);
+}
+
+.drawer[data-open="false"] .drawer__link {
+  opacity: 0;
+  translate: 0 -6px;
+}
+
+/* Command palette pops. */
+.palette[open] .palette__panel {
+  animation: palette-in var(--dur-3) var(--e-spring) both;
+}
+
+.palette[open]::backdrop {
+  animation: fade-in var(--dur-3) var(--e-out) both;
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    scale: 0.97;
+    translate: 0 -6px;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   8. Theme change and page changes
+   The theme swap runs as a same-document View Transition and wipes in a circle
+   from the toggle (app.js drives the geometry). Moving between the four pages
+   cross-fades when the browser supports cross-document transitions, and is a
+   plain navigation everywhere else.
+   -------------------------------------------------------------------------- */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+  animation: page-out 180ms var(--e-out) both;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+  animation: page-in 300ms var(--e-out) both;
+}
+
+/* The theme swap animates clip-path itself; a fade on top would muddy it. */
+html.theme-wipe::view-transition-old(root),
+html.theme-wipe::view-transition-new(root) {
+  animation: none;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Off switches
+   Nothing is hidden and nothing loops when motion is off — the reveal styles
+   simply never apply, so the page is complete without animation.
+   -------------------------------------------------------------------------- */
+
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+}
+
+html[data-motion="off"] [data-reveal],
+html[data-motion="off"] [data-reveal-group] > * {
+  opacity: 1 !important;
+  translate: none !important;
+  scale: none !important;
+  filter: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+html[data-motion="off"] .hero__title.is-split .w {
+  translate: none;
+  transition: none;
+}
+
+/* The accent rule is part of the layout, not the animation: keep it drawn. */
+html[data-motion="off"] .section-head .eyebrow::before,
+html[data-motion="off"] .contact .eyebrow::before {
+  transform: scaleX(1);
+}
+
+html[data-motion="off"] .footer__status .status-dot,
+html[data-motion="off"] .hero-loc .status-dot {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js [data-reveal],
+  html.js [data-reveal-group] > * {
+    opacity: 1 !important;
+    translate: none !important;
+    scale: none !important;
+    filter: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .hero__title.is-split .w {
+    translate: none;
+    transition: none;
+  }
+
+  .section-head .eyebrow::before,
+  .contact .eyebrow::before {
+    transform: scaleX(1);
+    transition: none;
+  }
+
+  .kit-card,
+  .kit-list__row,
+  .footer__status .status-dot,
+  .hero-loc .status-dot,
+  .palette[open] .palette__panel,
+  .palette[open]::backdrop,
+  .section:target > .container > .section-head .eyebrow {
+    animation: none !important;
+  }
+
+  .tilt,
+  .mag {
+    transition: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@media print {
+  html.js [data-reveal],
+  html.js [data-reveal-group] > * {
+    opacity: 1 !important;
+    translate: none !important;
+    scale: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .scroll-progress,
+  .totop {
+    display: none !important;
+  }
+}

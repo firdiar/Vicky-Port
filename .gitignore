@@ -1,0 +1,14 @@
+# session / tooling metadata — never published
+.harness2/
+.dsh-admin/
+.dsh/
+.harness*/
+
+# local server + probe output
+shots/
+*.log
+
+# OS noise
+Thumbs.db
+desktop.ini
+.DS_Store

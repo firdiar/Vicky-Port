@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en" data-page="home">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kitmd registry — a design system demo</title>
+<meta name="description" content="kitmd is a registry for DESIGN.md files: the tokens, type, components and rules of a design system captured as one portable document developers can search, download and diff.">
+<meta name="theme-color" content="#FAFAFA">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@600,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400&display=swap">
+<script>
+  // Resolve the theme before first paint so there is no flash of the wrong surface.
+  (function () {
+    try {
+      var params = /[?&]theme=(light|dark)/.exec(window.location.search);
+      var stored = localStorage.getItem("genesis-theme");
+      var theme = params
+        ? params[1]
+        : stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.dataset.theme = theme;
+    } catch (e) {}
+
+    // Motion hooks. `js` gates the hidden states in motion.css; the timer
+    // un-hides everything if motion.js never reports for duty.
+    document.documentElement.classList.add("js");
+    if (/[?&]motion=off/.test(window.location.search)) {
+      document.documentElement.dataset.motion = "off";
+    }
+    window.setTimeout(function () {
+      if (!document.documentElement.dataset.motionReady) {
+        document.documentElement.dataset.motion = "off";
+      }
+    }, 2500);
+  })();
+</script>
+<link rel="stylesheet" href="assets/css/genesis.css">
+<link rel="stylesheet" href="assets/css/motion.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="brand" href="registry.html" aria-label="kitmd home">
+      <span class="brand__mark" aria-hidden="true">K</span>
+      <span>kit<span class="brandgreen">md</span></span>
+      <span class="badge" style="margin-left:6px">demo</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a class="nav-link" href="explore.html">Explore</a>
+      <a class="nav-link" href="system.html">Design system</a>
+      <a class="nav-link" href="system.html#format">Format</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a class="search-trigger" href="explore.html" data-search-trigger aria-haspopup="dialog" aria-label="Search kits" aria-keyshortcuts="Control+K">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+        <span class="search-trigger__label">Search kits</span>
+        <kbd class="kbd">Ctrl K</kbd>
+      </a>
+
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch to dark theme" title="Dark theme">
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+      </button>
+
+      <div class="menu-wrap">
+        <button class="icon-btn" type="button" data-menu-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Account menu" style="width:auto;padding:0 4px 0 0;gap:6px;display:inline-flex;align-items:center">
+          <span class="avatar avatar--sm avatar--tone-3" aria-hidden="true">AK</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="menu" data-menu role="menu" aria-label="Account">
+          <div style="padding:8px 12px 10px">
+            <p style="font-size:13px;font-weight:500">Ari Kusuma</p>
+            <p class="hint">@ak · free plan</p>
+          </div>
+          <div class="menu__divider"></div>
+          <a class="menu__item" href="kit.html?id=genesis" role="menuitem">Your kits</a>
+          <a class="menu__item" href="system.html" role="menuitem">Design system</a>
+          <a class="menu__item" href="explore.html" role="menuitem">Saved kits</a>
+          <div class="menu__divider"></div>
+          <a class="menu__item" href="registry.html" role="menuitem">Sign out</a>
+        </div>
+      </div>
+
+      <button class="icon-btn nav__burger" type="button" data-drawer-toggle aria-expanded="false" aria-controls="drawer" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="drawer" id="drawer" data-open="false">
+  <nav aria-label="Mobile">
+    <a class="drawer__link" href="explore.html">Explore <span class="badge">12</span></a>
+    <a class="drawer__link" href="system.html">Design system</a>
+    <a class="drawer__link" href="system.html#format">Format</a>
+    <a class="drawer__link" href="kit.html?id=genesis">Featured kit</a>
+  </nav>
+</div>
+
+<main id="main">
+
+  <!-- ============================== Hero ============================== -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="dotgrid" aria-hidden="true"></div>
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <p class="eyebrow">Design system registry · v1 format</p>
+        <h1 class="display hero__title" id="hero-title">
+          Good design systems are written, not remembered.
+        </h1>
+        <p class="hero__sub">
+          kitmd keeps the decisions behind an interface in one portable document —
+          tokens, type, components and the rules that hold them together — so a
+          team can search it, download it and diff it like code.
+        </p>
+
+        <div class="hero__search">
+          <a class="search-trigger" href="explore.html" data-search-trigger aria-haspopup="dialog" aria-keyshortcuts="Control+K" style="height:44px;min-width:0;width:100%;border-radius:12px;padding-left:14px;font-size:14px">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+            <span class="search-trigger__label">Search 12 kits, authors or tokens</span>
+            <kbd class="kbd">Ctrl K</kbd>
+          </a>
+        </div>
+
+        <div class="hero__actions">
+          <a class="btn btn--primary btn--lg" href="explore.html">
+            Explore the registry
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn--secondary btn--lg" href="system.html#format">Read the format</a>
+        </div>
+
+        <div class="hero__stats">
+          <div class="hero-stat"><span class="hero-stat__value">12</span><span class="hero-stat__label">kits documented</span></div>
+          <div class="hero-stat"><span class="hero-stat__value">75.2k</span><span class="hero-stat__label">downloads</span></div>
+          <div class="hero-stat"><span class="hero-stat__value">12</span><span class="hero-stat__label">contributing teams</span></div>
+          <div class="hero-stat"><span class="hero-stat__value">v1</span><span class="hero-stat__label">format version</span></div>
+        </div>
+      </div>
+
+      <div class="specimen" aria-hidden="true">
+        <div class="specimen__bar">
+          <span class="specimen__dots"><span class="specimen__dot"></span><span class="specimen__dot"></span><span class="specimen__dot"></span></span>
+          <span class="specimen__file">genesis.design.md</span>
+        </div>
+        <pre class="specimen__code"><span class="c"># Genesis</span>
+<span class="v">An editorial precision interface.</span>
+
+<span class="k">## Colors</span>
+- Primary   <span class="v">#6366F1</span>   interaction
+- Surface   <span class="v">#FFFFFF</span>   cards
+- Border    <span class="v">#E8E8EC</span>   hairline
+
+<span class="k">## Typography</span>
+- Display   General Sans / 72 / 700
+- Body      DM Sans / 15 / 400
+- Code      JetBrains Mono / 12
+
+<span class="k">## Spacing</span>
+- base 4px · scale 4…96
+- container 1280 · gutter 24</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== Featured =========================== -->
+  <section class="section" aria-labelledby="featured-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Curated</p>
+          <h2 class="section-head__title" id="featured-title">Featured this week</h2>
+          <p class="section-head__desc">
+            Six kits our team keeps coming back to. Every entry ships as a complete
+            DESIGN.md — light and dark tokens, type scale and component rules included.
+          </p>
+        </div>
+        <a class="btn btn--secondary" href="explore.html">
+          View all kits
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <div class="kit-grid">
+        <a class="card card--hover kit-card" href="kit.html?id=genesis">
+          <div class="kit-card__media">
+            <img src="assets/img/kits/genesis.svg" alt="Genesis kit sheet preview" width="800" height="400" decoding="async">
+          </div>
+          <div class="kit-card__body">
+            <div class="kit-card__top">
+              <div>
+                <h3 class="kit-card__title">Genesis</h3>
+                <p class="kit-card__author">@chef</p>
+              </div>
+              <span class="badge">v1</span>
+            </div>
+            <p class="kit-card__desc">Editorial precision: bold display type, 4px rhythm, indigo reserved for interaction.</p>
+            <div class="chip-row">
+              <span class="chip">accessible</span><span class="chip">blue</span><span class="chip">clean</span>
+            </div>
+            <div class="kit-card__foot">
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg><span class="stat__num">13.3k</span> downloads</span>
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20Z"/></svg><span class="stat__num">43</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card card--hover kit-card" href="kit.html?id=terminal">
+          <div class="kit-card__media">
+            <img src="assets/img/kits/terminal.svg" alt="Terminal kit sheet preview" width="800" height="400" loading="lazy" decoding="async">
+          </div>
+          <div class="kit-card__body">
+            <div class="kit-card__top">
+              <div>
+                <h3 class="kit-card__title">Terminal</h3>
+                <p class="kit-card__author">@kbyte</p>
+              </div>
+              <span class="badge">v2</span>
+            </div>
+            <p class="kit-card__desc">Dark-first console UI with phosphor green states and a mono-first layout.</p>
+            <div class="chip-row">
+              <span class="chip">dark</span><span class="chip">developer</span><span class="chip">mono</span>
+            </div>
+            <div class="kit-card__foot">
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg><span class="stat__num">9.8k</span> downloads</span>
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20Z"/></svg><span class="stat__num">72</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card card--hover kit-card" href="kit.html?id=cobalt">
+          <div class="kit-card__media">
+            <img src="assets/img/kits/cobalt.svg" alt="Cobalt kit sheet preview" width="800" height="400" loading="lazy" decoding="async">
+          </div>
+          <div class="kit-card__body">
+            <div class="kit-card__top">
+              <div>
+                <h3 class="kit-card__title">Cobalt</h3>
+                <p class="kit-card__author">@northwind</p>
+              </div>
+              <span class="badge">v4</span>
+            </div>
+            <p class="kit-card__desc">Enterprise clarity: dense forms, documented validation and 44px touch targets.</p>
+            <div class="chip-row">
+              <span class="chip">enterprise</span><span class="chip">forms</span><span class="chip">accessible</span>
+            </div>
+            <div class="kit-card__foot">
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg><span class="stat__num">11.2k</span> downloads</span>
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20Z"/></svg><span class="stat__num">48</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card card--hover kit-card" href="kit.html?id=mono-grid">
+          <div class="kit-card__media">
+            <img src="assets/img/kits/mono-grid.svg" alt="Mono Grid kit sheet preview" width="800" height="400" loading="lazy" decoding="async">
+          </div>
+          <div class="kit-card__body">
+            <div class="kit-card__top">
+              <div>
+                <h3 class="kit-card__title">Mono Grid</h3>
+                <p class="kit-card__author">@gridhouse</p>
+              </div>
+              <span class="badge">v3</span>
+            </div>
+            <p class="kit-card__desc">Brutalist Swiss grid: heavy grotesk type, hard corners, one signal orange.</p>
+            <div class="chip-row">
+              <span class="chip">brutalist</span><span class="chip">grid</span><span class="chip">bold</span>
+            </div>
+            <div class="kit-card__foot">
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg><span class="stat__num">7.2k</span> downloads</span>
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20Z"/></svg><span class="stat__num">55</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card card--hover kit-card" href="kit.html?id=graphite">
+          <div class="kit-card__media">
+            <img src="assets/img/kits/graphite.svg" alt="Graphite kit sheet preview" width="800" height="400" loading="lazy" decoding="async">
+          </div>
+          <div class="kit-card__body">
+            <div class="kit-card__top">
+              <div>
+                <h3 class="kit-card__title">Graphite</h3>
+                <p class="kit-card__author">@north-studio</p>
+              </div>
+              <span class="badge">v1</span>
+            </div>
+            <p class="kit-card__desc">Monochrome print editorial for long-form reading, docs and handbooks.</p>
+            <div class="chip-row">
+              <span class="chip">monochrome</span><span class="chip">editorial</span><span class="chip">docs</span>
+            </div>
+            <div class="kit-card__foot">
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg><span class="stat__num">6.1k</span> downloads</span>
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20Z"/></svg><span class="stat__num">37</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="card card--hover kit-card" href="kit.html?id=aurora">
+          <div class="kit-card__media">
+            <img src="assets/img/kits/aurora.svg" alt="Aurora kit sheet preview" width="800" height="400" loading="lazy" decoding="async">
+          </div>
+          <div class="kit-card__body">
+            <div class="kit-card__top">
+              <div>
+                <h3 class="kit-card__title">Aurora</h3>
+                <p class="kit-card__author">@mika</p>
+              </div>
+              <span class="badge">v2</span>
+            </div>
+            <p class="kit-card__desc">Data-dense analytics with tabular numerals and a cool violet accent.</p>
+            <div class="chip-row">
+              <span class="chip">data</span><span class="chip">compact</span><span class="chip">violet</span>
+            </div>
+            <div class="kit-card__foot">
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/></svg><span class="stat__num">8.4k</span> downloads</span>
+              <span class="stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.8C19 15.6 12 20 12 20Z"/></svg><span class="stat__num">61</span></span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="row mt-8" style="gap:8px">
+        <span class="eyebrow" style="margin-right:4px">Browse by tag</span>
+        <a class="chip" href="explore.html?tag=accessible">accessible</a>
+        <a class="chip" href="explore.html?tag=editorial">editorial</a>
+        <a class="chip" href="explore.html?tag=dark">dark</a>
+        <a class="chip" href="explore.html?tag=warm">warm</a>
+        <a class="chip" href="explore.html?tag=mono">mono</a>
+        <a class="chip" href="explore.html">all tags</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ Palette =========================== -->
+  <section class="section" id="palette" aria-labelledby="palette-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">01 — Colour</p>
+          <h2 class="section-head__title" id="palette-title">The palette</h2>
+          <p class="section-head__desc">
+            Twelve tokens, one accent. Indigo carries every interactive affordance;
+            green is held back for the wordmark; everything else is scaffolding.
+            Click a swatch to copy its hex.
+          </p>
+        </div>
+        <a class="btn btn--secondary" href="system.html#color">Open colour spec</a>
+      </div>
+
+      <div class="swatches">
+        <button class="swatch" type="button" data-copy-value="#6366F1" aria-label="Copy Primary #6366F1">
+          <span class="swatch__chip" style="background:#6366F1"></span>
+          <span class="swatch__meta"><span class="swatch__name">Primary</span><span class="swatch__hex">#6366F1</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#4F46E5" aria-label="Copy Primary hover #4F46E5">
+          <span class="swatch__chip" style="background:#4F46E5"></span>
+          <span class="swatch__meta"><span class="swatch__name">Primary hover</span><span class="swatch__hex">#4F46E5</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#20970B" aria-label="Copy Secondary #20970B">
+          <span class="swatch__chip" style="background:#20970B"></span>
+          <span class="swatch__meta"><span class="swatch__name">Secondary</span><span class="swatch__hex">#20970B</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#9C9C9C" aria-label="Copy Neutral #9C9C9C">
+          <span class="swatch__chip" style="background:#9C9C9C"></span>
+          <span class="swatch__meta"><span class="swatch__name">Neutral</span><span class="swatch__hex">#9C9C9C</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#FAFAFA" aria-label="Copy Background #FAFAFA">
+          <span class="swatch__chip swatch__chip--ring" style="background:#FAFAFA"></span>
+          <span class="swatch__meta"><span class="swatch__name">Background</span><span class="swatch__hex">#FAFAFA</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#FFFFFF" aria-label="Copy Surface #FFFFFF">
+          <span class="swatch__chip swatch__chip--ring" style="background:#FFFFFF"></span>
+          <span class="swatch__meta"><span class="swatch__name">Surface</span><span class="swatch__hex">#FFFFFF</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#0A0A0A" aria-label="Copy Text primary #0A0A0A">
+          <span class="swatch__chip" style="background:#0A0A0A"></span>
+          <span class="swatch__meta"><span class="swatch__name">Text primary</span><span class="swatch__hex">#0A0A0A</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#6B6B6B" aria-label="Copy Text secondary #6B6B6B">
+          <span class="swatch__chip" style="background:#6B6B6B"></span>
+          <span class="swatch__meta"><span class="swatch__name">Text secondary</span><span class="swatch__hex">#6B6B6B</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#E8E8EC" aria-label="Copy Border #E8E8EC">
+          <span class="swatch__chip swatch__chip--ring" style="background:#E8E8EC"></span>
+          <span class="swatch__meta"><span class="swatch__name">Border</span><span class="swatch__hex">#E8E8EC</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#10B981" aria-label="Copy Success #10B981">
+          <span class="swatch__chip" style="background:#10B981"></span>
+          <span class="swatch__meta"><span class="swatch__name">Success</span><span class="swatch__hex">#10B981</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#F59E0B" aria-label="Copy Warning #F59E0B">
+          <span class="swatch__chip" style="background:#F59E0B"></span>
+          <span class="swatch__meta"><span class="swatch__name">Warning</span><span class="swatch__hex">#F59E0B</span></span>
+        </button>
+        <button class="swatch" type="button" data-copy-value="#EF4444" aria-label="Copy Error #EF4444">
+          <span class="swatch__chip" style="background:#EF4444"></span>
+          <span class="swatch__meta"><span class="swatch__name">Error</span><span class="swatch__hex">#EF4444</span></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== Typography ======================== -->
+  <section class="section" id="typography" aria-labelledby="type-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">02 — Typography</p>
+          <h2 class="section-head__title" id="type-title">Two voices, one grid</h2>
+          <p class="section-head__desc">
+            General Sans does the talking, DM Sans does the work. Tight tracking on
+            display sizes, generous line height in body copy, mono only for code and
+            identifiers.
+          </p>
+        </div>
+        <a class="btn btn--secondary" href="system.html#type">Open type spec</a>
+      </div>
+
+      <div class="type-list">
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Display</span>
+            <span class="type-row__spec">General Sans · 72px · 700</span>
+          </div>
+          <p class="type-row__sample type-display">Every letter tells a story worth reading.</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Headline</span>
+            <span class="type-row__spec">General Sans · 60px · 700</span>
+          </div>
+          <p class="type-row__sample type-headline">Every letter tells a story worth reading.</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Section heading</span>
+            <span class="type-row__spec">General Sans · 32px · 700</span>
+          </div>
+          <p class="type-row__sample type-h3">Every letter tells a story worth reading.</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Subhead</span>
+            <span class="type-row__spec">General Sans · 24px · 700</span>
+          </div>
+          <p class="type-row__sample type-subhead">Every letter tells a story worth reading.</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Body</span>
+            <span class="type-row__spec">DM Sans · 15px · 400</span>
+          </div>
+          <p class="type-row__sample type-body">Every letter tells a story worth reading, and every typeface gives that story a new voice waiting to be heard. Body copy runs at 15px with a 1.6 line height and a maximum measure of 68 characters.</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Small</span>
+            <span class="type-row__spec">DM Sans · 13px · 400</span>
+          </div>
+          <p class="type-row__sample type-small">Metadata, helper text and the second line of a list row live at 13px.</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Caption</span>
+            <span class="type-row__spec">DM Sans · 12px · 400</span>
+          </div>
+          <p class="type-row__sample type-caption">Timestamps, counts and keyboard hints.</p>
+        </div>
+        <div class="type-row">
+          <div class="type-row__label">
+            <span class="type-row__name">Overline</span>
+            <span class="type-row__spec">DM Sans · 11px · 500 · 0.1em</span>
+          </div>
+          <p class="type-row__sample type-overline">Section label</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= Spacing ========================= -->
+  <section class="section" id="spacing" aria-labelledby="spacing-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">03 — Spacing</p>
+          <h2 class="section-head__title" id="spacing-title">Everything is a multiple of four</h2>
+          <p class="section-head__desc">
+            One scale, no exceptions. Padding, margins and gaps all come from the
+            twelve-step grid below; optical adjustments are made with whitespace,
+            never with odd numbers.
+          </p>
+        </div>
+        <a class="btn btn--secondary" href="system.html#spacing">Open spacing spec</a>
+      </div>
+
+      <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s10)">
+        <div class="spacing-list">
+          <div class="spacing-row"><span class="spacing-row__label">4px</span><span class="spacing-row__bar" style="width:4px"></span><span class="spacing-row__token">--s1</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">8px</span><span class="spacing-row__bar" style="width:8px"></span><span class="spacing-row__token">--s2</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">12px</span><span class="spacing-row__bar" style="width:12px"></span><span class="spacing-row__token">--s3</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">16px</span><span class="spacing-row__bar" style="width:16px"></span><span class="spacing-row__token">--s4</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">20px</span><span class="spacing-row__bar" style="width:20px"></span><span class="spacing-row__token">--s5</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">24px</span><span class="spacing-row__bar" style="width:24px"></span><span class="spacing-row__token">--s6</span></div>
+        </div>
+        <div class="spacing-list">
+          <div class="spacing-row"><span class="spacing-row__label">32px</span><span class="spacing-row__bar" style="width:32px"></span><span class="spacing-row__token">--s8</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">40px</span><span class="spacing-row__bar" style="width:40px"></span><span class="spacing-row__token">--s10</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">48px</span><span class="spacing-row__bar" style="width:48px"></span><span class="spacing-row__token">--s12</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">64px</span><span class="spacing-row__bar" style="width:64px"></span><span class="spacing-row__token">--s16</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">80px</span><span class="spacing-row__bar" style="width:80px"></span><span class="spacing-row__token">--s20</span></div>
+          <div class="spacing-row"><span class="spacing-row__label">96px</span><span class="spacing-row__bar" style="width:96px"></span><span class="spacing-row__token">--s24</span></div>
+        </div>
+      </div>
+
+      <div class="grid mt-10" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s5)">
+        <div class="card card--pad">
+          <p class="eyebrow">Component padding</p>
+          <p class="mt-2" style="font-size:14px">Small 8 × 12 · Medium 10 × 16 · Large 12 × 24</p>
+        </div>
+        <div class="card card--pad">
+          <p class="eyebrow">Section rhythm</p>
+          <p class="mt-2" style="font-size:14px">32px mobile · 48px tablet · 64px desktop</p>
+        </div>
+        <div class="card card--pad">
+          <p class="eyebrow">Container</p>
+          <p class="mt-2" style="font-size:14px">1280px max · 24px gutter · 20–24px card gap</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== Components ======================== -->
+  <section class="section" id="components" aria-labelledby="components-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">04 — Components</p>
+          <h2 class="section-head__title" id="components-title">The working parts</h2>
+          <p class="section-head__desc">
+            Live components, not screenshots. Focus rings are indigo, cards rest flat,
+            and shadow appears only when something is hovered, focused or floating.
+          </p>
+        </div>
+        <a class="btn btn--secondary" href="system.html#components">Open component spec</a>
+      </div>
+
+      <div class="demo-grid">
+        <div class="demo">
+          <div class="demo__head"><span class="demo__title">Buttons</span><span class="demo__note">6px radius · shift up 1px on hover</span></div>
+          <div class="demo__body">
+            <div class="btn-row">
+              <button class="btn btn--primary" type="button">Primary</button>
+              <button class="btn btn--secondary" type="button">Secondary</button>
+              <button class="btn btn--ghost" type="button">Ghost</button>
+              <button class="btn btn--danger" type="button">Delete</button>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn--secondary btn--sm" type="button">Small 32</button>
+              <button class="btn btn--secondary" type="button">Medium 38</button>
+              <button class="btn btn--secondary btn--lg" type="button">Large 44</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo">
+          <div class="demo__head"><span class="demo__title">Inputs</span><span class="demo__note">1px border · 3px focus ring</span></div>
+          <div class="demo__body">
+            <div class="field">
+              <label class="label" for="demo-email">Email</label>
+              <input class="input" id="demo-email" type="email" placeholder="you@studio.com" autocomplete="email">
+              <span class="hint">We only email when a kit you follow is updated.</span>
+            </div>
+            <div class="field">
+              <label class="label" for="demo-email-error">Email (error)</label>
+              <input class="input" id="demo-email-error" type="email" value="ari@" aria-invalid="true" aria-describedby="demo-email-msg">
+              <span class="error-msg" id="demo-email-msg">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+                Please enter a valid email
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo">
+          <div class="demo__head"><span class="demo__title">Chips &amp; status</span><span class="demo__note">Pill shape · 4px × 12px</span></div>
+          <div class="demo__body">
+            <div class="chip-row">
+              <span class="chip">Default</span>
+              <span class="chip chip--active">Active</span>
+              <span class="chip">editorial</span>
+              <span class="chip">accessible</span>
+            </div>
+            <div class="chip-row">
+              <span class="chip chip--status-published"><span class="status-dot"></span>Published</span>
+              <span class="chip chip--status-pending"><span class="status-dot"></span>Pending</span>
+              <span class="chip chip--status-rejected"><span class="status-dot"></span>Rejected</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo">
+          <div class="demo__head"><span class="demo__title">Lists &amp; checkboxes</span><span class="demo__note">1px dividers · 20px round checks</span></div>
+          <div class="demo__body">
+            <div class="list">
+              <div class="list__row"><span>Downloads</span><span class="list__meta">13,300</span></div>
+              <div class="list__row"><span>Copies</span><span class="list__meta">4,600</span></div>
+              <div class="list__row"><span>Licence</span><span class="list__meta">MIT</span></div>
+            </div>
+            <label class="check-row"><input class="check" type="checkbox" checked> Notify me about new kits in this tag</label>
+            <label class="check-row"><input class="check" type="checkbox"> Include pending submissions</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== Rules ========================== -->
+  <section class="section" aria-labelledby="rules-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">05 — Rules</p>
+          <h2 class="section-head__title" id="rules-title">Do's and don'ts</h2>
+          <p class="section-head__desc">Five rules each. If a decision is not covered here, the default is the quieter option.</p>
+        </div>
+      </div>
+
+      <div class="rules">
+        <div class="rule rule--do">
+          <div class="rule__head">
+            <span class="rule__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg></span>
+            <span class="rule__title">Do</span>
+          </div>
+          <ul class="rule__list">
+            <li class="rule__item">Use <strong>indigo (#6366F1)</strong> only for interactive elements — never for decoration or static text.</li>
+            <li class="rule__item">Maintain the <strong>4px spacing grid</strong> for all padding, margins and gaps.</li>
+            <li class="rule__item">Use <strong>General Sans for headings and DM Sans for body</strong> — never swap them.</li>
+            <li class="rule__item">Keep kit cards at <strong>12px radius</strong> and buttons/inputs at <strong>6px</strong> — don't mix these values.</li>
+            <li class="rule__item">Provide <strong>sufficient contrast</strong> in both light and dark modes — test both.</li>
+          </ul>
+        </div>
+
+        <div class="rule rule--dont">
+          <div class="rule__head">
+            <span class="rule__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+            <span class="rule__title">Don't</span>
+          </div>
+          <ul class="rule__list">
+            <li class="rule__item">Don't use <strong>pure black or pure white</strong> for text — use the defined palette values.</li>
+            <li class="rule__item">Don't add <strong>decorative gradients or illustrations</strong> — the interactive dot grid is the only decorative element.</li>
+            <li class="rule__item">Don't use <strong>shadows on static elements</strong> — reserve elevation for hover and focus states.</li>
+            <li class="rule__item">Don't use <strong>more than two font weights</strong> on a single screen.</li>
+            <li class="rule__item">Don't place <strong>more than one primary button</strong> in the same view section.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ Format CTA ======================= -->
+  <section class="section" id="format" aria-labelledby="format-title">
+    <div class="container">
+      <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s12);align-items:center">
+        <div>
+          <p class="eyebrow">The format</p>
+          <h2 class="section-head__title" id="format-title" style="margin-top:8px">One file, everything a team needs</h2>
+          <p class="mt-3 muted" style="max-width:52ch">
+            A DESIGN.md is plain markdown with a fixed skeleton: overview, colours,
+            typography, spacing, components and rules. It renders anywhere, diffs
+            cleanly in a pull request, and gives a model the context to generate UI
+            that actually matches.
+          </p>
+          <div class="row mt-6">
+            <a class="btn btn--primary" href="system.html#format">Read the format</a>
+            <a class="btn btn--secondary" href="kit.html?id=genesis">See a real kit</a>
+          </div>
+        </div>
+
+        <div class="specimen">
+          <div class="specimen__bar">
+            <span class="specimen__dots"><span class="specimen__dot"></span><span class="specimen__dot"></span><span class="specimen__dot"></span></span>
+            <span class="specimen__file">DESIGN.md</span>
+            <button class="btn btn--ghost btn--sm" type="button" data-copy-target="#format-skeleton" style="margin-inline-start:auto">Copy</button>
+          </div>
+<pre class="specimen__code" id="format-skeleton"># Kit name
+## Overview
+  One paragraph on mood, audience, density.
+## Colors
+  - **Role** (#HEX): where it is allowed.
+## Typography
+  - Display / Body / Code, with sizes and weights.
+## Spacing
+  - Base unit, scale, container, gutters.
+## Components
+  - Buttons, inputs, chips, cards, nav.
+## Do's and Don'ts
+  - The five rules that settle arguments.</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="registry.html"><span class="brand__mark" aria-hidden="true">K</span><span>kit<span class="brandgreen">md</span></span></a>
+        <p>A registry for design systems that are written down. Built on the Genesis design system.</p>
+      </div>
+      <div>
+        <p class="eyebrow footer__col-title">Registry</p>
+        <ul class="footer__links">
+          <li><a href="explore.html">Explore kits</a></li>
+          <li><a href="explore.html?sort=recent">Newest</a></li>
+          <li><a href="kit.html?id=genesis">Featured</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="eyebrow footer__col-title">Format</p>
+        <ul class="footer__links">
+          <li><a href="system.html#format">DESIGN.md</a></li>
+          <li><a href="system.html#color">Tokens</a></li>
+          <li><a href="system.html#components">Components</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="eyebrow footer__col-title">Project</p>
+        <ul class="footer__links">
+          <li><a href="system.html#rules">Rules</a></li>
+          <li><a href="system.html#elevation">Elevation</a></li>
+          <li><a href="README.md">README</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 kitmd. Kits are MIT licensed unless stated otherwise.</span>
+      <span class="footer__status"><span class="status-dot"></span>All systems operational</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/motion.js"></script>
+</body>
+</html>
